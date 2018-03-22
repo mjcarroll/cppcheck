@@ -202,15 +202,13 @@ void ErrorLogger::ErrorMessage::setmsg(const std::string &msg)
         _shortMessage = msg;
         _verboseMessage = msg;
     } else {
-        if (msg.compare(0,5,"$var:") == 0) {
-            _variableName = msg.substr(5, pos-5);
-            setmsg(replaceStr(msg.substr(pos + 1), "$var", _variableName));
-        } else if (msg.compare(0,6,"$func:") == 0) {
-            _functionName = msg.substr(6, pos-6);
-            setmsg(replaceStr(msg.substr(pos + 1), "$func", _functionName));
+        if (msg.compare(0,8,"$symbol:") == 0) {
+            _symbolNames += msg.substr(8, pos-7);
+            setmsg(msg.substr(pos + 1));
         } else {
-            _shortMessage = msg.substr(0, pos);
-            _verboseMessage = msg.substr(pos + 1);
+			const std::string symbolName = _symbolNames.empty() ? std::string() : _symbolNames.substr(0, _symbolNames.find('\n'));
+            _shortMessage = replaceStr(msg.substr(0, pos), "$symbol", symbolName);
+            _verboseMessage = replaceStr(msg.substr(pos + 1), "$symbol", symbolName);
         }
     }
 }

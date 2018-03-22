@@ -306,11 +306,8 @@ public:
         /** Verbose message */
         std::string _verboseMessage;
 
-        /** Variable name */
-        std::string _variableName;
-
-        /** Function name */
-        std::string _functionName;
+        /** symbol names */
+        std::string _symbolNames;
     };
 
     ErrorLogger() { }
