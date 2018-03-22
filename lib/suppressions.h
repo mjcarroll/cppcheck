@@ -33,6 +33,17 @@
 /** @brief class for handling suppressions */
 class CPPCHECKLIB Suppressions {
 private:
+    struct ExtendedSuppression {
+		ExtendedSuppression() : lineNumber(-1), matched(false) {}
+		std::string id;
+		std::string fileName;
+		int lineNumber;
+		std::string symbolName;
+		bool matched;
+	};
+	std::list<ExtendedSuppression> _extendedSuppressions;
+
+
     class CPPCHECKLIB FileMatcher {
         friend class Suppressions;
     private:
@@ -86,6 +97,13 @@ public:
     std::string parseFile(std::istream &istr);
 
     /**
+     * @brief Don't show errors listed in the file.
+     * @param filename file name
+     * @return error message. empty upon success
+     */
+    std::string parseXmlFile(const char *filename);
+
+    /**
      * @brief Don't show the given error.
      * @param line Description of error to suppress (in id:file:line format).
      * @return error message. empty upon success
@@ -122,12 +140,14 @@ public:
 
     struct SuppressionEntry {
         SuppressionEntry(const std::string &aid, const std::string &afile, unsigned int aline)
-            : id(aid), file(afile), line(aline) {
+            : id(aid), file(afile), line(aline), matched(false) {
         }
 
         std::string id;
         std::string file;
         unsigned int line;
+        std::string symbolName;
+        bool matched;
     };
 
     /**

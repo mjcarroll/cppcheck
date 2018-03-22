@@ -20,6 +20,8 @@
 
 #include "path.h"
 
+#include <tinyxml2.h>
+
 #include <algorithm>
 #include <cctype>   // std::isdigit, std::isalnum, etc
 #include <stack>
@@ -50,6 +52,36 @@ std::string Suppressions::parseFile(std::istream &istr)
         if (!errmsg.empty())
             return errmsg;
     }
+
+    return "";
+}
+
+
+std::string Suppressions::parseXmlFile(const char *filename)
+{
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLError error = doc.LoadFile(path);
+    if (error == tinyxml2::XML_ERROR_FILE_NOT_FOUND)
+		return "File not found";
+
+    const tinyxml2::XMLElement * const rootnode = doc.FirstChildElement();
+    for (const tinyxml2::XMLElement * e = rootnode->FirstChildElement(); e; e = e->NextSiblingElement()) {
+		if (std::strcmp(e->Name(), "suppress")) {
+			ExtendedSuppression es;
+			for (const tinyxml2::XMLElement * e2 = e->FirstChildElement(); e2; e2 = e2->NextSiblingElement()) {
+				const char *text = e2->GetText() ? e2->GetText() : "";
+				if (std::strcmp(e2->Name(), "id") == 0)
+					es.id = text;
+				else if (std::strcmp(e2->Name(), "file") == 0)
+					es.file = text;
+				else if (std::strcmp(e2->Name(), "line") == 0)
+					es.lineNumber = std::atoi(text);
+				else if (std::strcmp(e2->Name(), "symbol") == 0)
+					es.symbolName = std::atoi(text);
+			}
+			_extendedSuppressions.push_back(es);
+		}
+	}
 
     return "";
 }
