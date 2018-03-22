@@ -122,7 +122,6 @@ void CheckBool::checkBitwiseOnBoolean()
 void CheckBool::bitwiseOnBooleanError(const Token *tok, const std::string &varname, const std::string &op)
 {
     reportError(tok, Severity::style, "bitwiseOnBoolean",
-                "$var:" + varname + "\n"
                 "Boolean variable '" + varname + "' is used in bitwise operation. Did you mean '" + op + "'?",
                 CWE398,
                 true);

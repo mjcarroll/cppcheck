@@ -358,9 +358,7 @@ void CheckAutoVariables::errorReturnAddressToAutoVariable(const Token *tok)
 
 void CheckAutoVariables::errorReturnAddressToAutoVariable(const Token *tok, const ValueFlow::Value *value)
 {
-    reportError(tok, Severity::error, "returnAddressOfAutoVariable",
-                "$var:" + value->tokvalue->astOperand1()->expressionString() + '\n' +
-                "Address of auto-variable '$var' returned", CWE562, false);
+    reportError(tok, Severity::error, "returnAddressOfAutoVariable", "Address of auto-variable '" + value->tokvalue->astOperand1()->expressionString() + "' returned", CWE562, false);
 }
 
 void CheckAutoVariables::errorReturnPointerToLocalArray(const Token *tok)
@@ -394,9 +392,7 @@ void CheckAutoVariables::errorAssignAddressOfLocalArrayToGlobalPointer(const Tok
     const std::string pointerName = pointer ? pointer->str() : std::string("pointer");
     const std::string arrayName   = array ? array->str() : std::string("array");
     reportError(pointer, Severity::warning, "autoVariablesAssignGlobalPointer",
-                "$var:" + arrayName + '\n'
-                "Address of local array $var is assigned to global pointer " + pointerName +" and not reassigned before $var goes out of scope.", CWE562, false);
-    // TODO: $var2 : pointerName
+                "Address of local array " + arrayName + " is assigned to global pointer " + pointerName +" and not reassigned before " + arrayName + " goes out of scope.", CWE562, false);
 }
 
 void CheckAutoVariables::errorAssignAddressOfLocalVariableToGlobalPointer(const Token *pointer, const Token *variable)
