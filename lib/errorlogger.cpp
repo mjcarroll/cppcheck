@@ -175,6 +175,16 @@ ErrorLogger::ErrorMessage::ErrorMessage(const tinyxml2::XMLElement * const errms
     }
 }
 
+static std::string replaceStr(std::string s, const std::string &from, const std::string &to)
+{
+    std::string::size_type pos = 0;
+    while (std::string::npos != (pos = s.find(from,pos))) {
+        s = s.substr(0, pos) + to + s.substr(pos + from.size());
+        pos += to.size();
+    }
+    return s;
+}
+
 void ErrorLogger::ErrorMessage::setmsg(const std::string &msg)
 {
     // If a message ends to a '\n' and contains only a one '\n'
@@ -192,8 +202,16 @@ void ErrorLogger::ErrorMessage::setmsg(const std::string &msg)
         _shortMessage = msg;
         _verboseMessage = msg;
     } else {
-        _shortMessage = msg.substr(0, pos);
-        _verboseMessage = msg.substr(pos + 1);
+        if (msg.compare(0,5,"$var:") == 0) {
+            _variableName = msg.substr(5, pos-5);
+            setmsg(replaceStr(msg.substr(pos + 1), "$var", _variableName));
+        } else if (msg.compare(0,6,"$func:") == 0) {
+            _functionName = msg.substr(6, pos-6);
+            setmsg(replaceStr(msg.substr(pos + 1), "$func", _functionName));
+        } else {
+            _shortMessage = msg.substr(0, pos);
+            _verboseMessage = msg.substr(pos + 1);
+        }
     }
 }
 
