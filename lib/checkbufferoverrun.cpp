@@ -62,13 +62,14 @@ static const CWE CWE788(788U);  // Access of Memory Location After End of Buffer
 
 static void makeArrayIndexOutOfBoundsError(std::ostream& oss, const CheckBufferOverrun::ArrayInfo &arrayInfo, const std::vector<MathLib::bigint> &index)
 {
-    oss << "Array '" << arrayInfo.varname();
+    oss << "$var:" << arrayInfo.varname() << '\n';
+    oss << "Array '$var";
     for (std::size_t i = 0; i < arrayInfo.num().size(); ++i)
         oss << "[" << arrayInfo.num(i) << "]";
     if (index.size() == 1)
         oss << "' accessed at index " << index[0] << ", which is";
     else {
-        oss << "' index " << arrayInfo.varname();
+        oss << "' index $var";
         for (std::size_t i = 0; i < index.size(); ++i)
             oss << "[" << index[i] << "]";
     }
@@ -117,13 +118,14 @@ void CheckBufferOverrun::arrayIndexOutOfBoundsError(const Token *tok, const Arra
             return;
 
         std::ostringstream errmsg;
-        errmsg << ValueFlow::eitherTheConditionIsRedundant(condition) << " or the array '" << arrayInfo.varname();
+        errmsg << "$var:" << arrayInfo.varname() << '\n';
+        errmsg << ValueFlow::eitherTheConditionIsRedundant(condition) << " or the array '$var";
         for (std::size_t i = 0; i < arrayInfo.num().size(); ++i)
             errmsg << "[" << arrayInfo.num(i) << "]";
         if (index.size() == 1)
             errmsg << "' is accessed at index " << index[0].intvalue << ", which is out of bounds.";
         else {
-            errmsg << "' index " << arrayInfo.varname();
+            errmsg << "' index $var";
             for (std::size_t i = 0; i < index.size(); ++i)
                 errmsg << "[" << index[i].intvalue << "]";
             errmsg << " is out of bounds.";
@@ -132,13 +134,14 @@ void CheckBufferOverrun::arrayIndexOutOfBoundsError(const Token *tok, const Arra
         reportError(errorPath, Severity::warning, "arrayIndexOutOfBoundsCond", errmsg.str(), CWE119, inconclusive);
     } else {
         std::ostringstream errmsg;
-        errmsg << "Array '" << arrayInfo.varname();
+        errmsg << "$var:" << arrayInfo.varname() << '\n';
+        errmsg << "Array '$var";
         for (std::size_t i = 0; i < arrayInfo.num().size(); ++i)
             errmsg << "[" << arrayInfo.num(i) << "]";
         if (index.size() == 1)
             errmsg << "' accessed at index " << index[0].intvalue << ", which is out of bounds.";
         else {
-            errmsg << "' index " << arrayInfo.varname();
+            errmsg << "' index $var";
             for (std::size_t i = 0; i < index.size(); ++i)
                 errmsg << "[" << index[i].intvalue << "]";
             errmsg << " out of bounds.";
