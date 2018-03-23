@@ -511,7 +511,7 @@ void ErrorLogger::reportUnmatchedSuppressions(const std::list<Suppressions::Supp
         for (std::list<Suppressions::Suppression>::const_iterator i2 = unmatched.begin(); i2 != unmatched.end(); ++i2) {
             if (i2->errorId == "unmatchedSuppression") {
                 if ((i2->fileName == "*" || i2->fileName == i->fileName) &&
-                    (i2->lineNumber == 0 || i2->lineNumber == i->lineNumber)) {
+                    (i2->lineNumber == Suppressions::Suppression::NO_LINE || i2->lineNumber == i->lineNumber)) {
                     suppressed = true;
                     break;
                 }
@@ -521,8 +521,9 @@ void ErrorLogger::reportUnmatchedSuppressions(const std::list<Suppressions::Supp
         if (suppressed)
             continue;
 
-        const std::list<ErrorLogger::ErrorMessage::FileLocation> callStack = make_container< std::list<ErrorLogger::ErrorMessage::FileLocation> > ()
-                << ErrorLogger::ErrorMessage::FileLocation(i->fileName, i->lineNumber);
+        std::list<ErrorLogger::ErrorMessage::FileLocation> callStack;
+        if (!i->fileName.empty())
+			callStack.push_back(ErrorLogger::ErrorMessage::FileLocation(i->fileName, i->lineNumber));
         reportErr(ErrorLogger::ErrorMessage(callStack, emptyString, Severity::information, "Unmatched suppression: " + i->errorId, "unmatchedSuppression", false));
     }
 }
