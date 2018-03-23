@@ -24,7 +24,7 @@
 
 #include <istream>
 #include <list>
-#include <map>
+#include <set>
 #include <string>
 
 /// @addtogroup Core
@@ -32,63 +32,54 @@
 
 /** @brief class for handling suppressions */
 class CPPCHECKLIB Suppressions {
-private:
-    struct ExtendedSuppression {
-		ExtendedSuppression() : lineNumber(-1), matched(false) {}
-		std::string id;
-		std::string fileName;
-		int lineNumber;
-		std::string symbolName;
-		bool matched;
-	};
-	std::list<ExtendedSuppression> _extendedSuppressions;
+public:
 
-
-    class CPPCHECKLIB FileMatcher {
-        friend class Suppressions;
-    private:
-        /** @brief List of filenames suppressed, bool flag indicates whether suppression matched. */
-        std::map<std::string, std::map<unsigned int, bool> > _files;
-        /** @brief List of globs suppressed, bool flag indicates whether suppression matched. */
-        std::map<std::string, std::map<unsigned int, bool> > _globs;
-
-        /**
-         * @brief Match a name against a glob pattern.
-         * @param pattern The glob pattern to match.
-         * @param name The filename to match against the glob pattern.
-         * @return match success
-         */
-        static bool match(const std::string &pattern, const std::string &name);
-
-    public:
-        /**
-         * @brief Add a file or glob (and line number).
-         * @param name File name or glob pattern
-         * @param line Line number
-         * @return error message. empty upon success
-         */
-        std::string addFile(const std::string &name, unsigned int line);
-
-        /**
-         * @brief Returns true if the file name matches a previously added file or glob pattern.
-         * @param file File name to check
-         * @param line Line number
-         * @return true if this filename/line matches
-         */
-        bool isSuppressed(const std::string &file, unsigned int line);
-
-        /**
-         * @brief Returns true if the file name matches a previously added file (only, not glob pattern).
-         * @param file File name to check
-         * @param line Line number
-         * @return true if this filename/line matches
-         */
-        bool isSuppressedLocal(const std::string &file, unsigned int line);
+    struct ErrorMessage {
+        std::string errorId;
+        std::string fileName;
+        int lineNumber;
+        bool inconclusive;
+        std::string symbolNames;
     };
 
-    /** @brief List of error which the user doesn't want to see. */
-    std::map<std::string, FileMatcher> _suppressions;
-public:
+    struct Suppression {
+        Suppression() : lineNumber(-1), matched(false) {}
+        Suppression(const Suppression &other) {
+            *this = other;
+        }
+        Suppression(const std::string &id, const std::string &file, int line) : errorId(id), fileName(file), lineNumber(line), matched(false) {}
+
+        Suppression & operator=(const Suppression &other) {
+            errorId = other.errorId;
+            fileName = other.fileName;
+            lineNumber = other.lineNumber;
+            symbolName = other.symbolName;
+            matched = other.matched;
+            return *this;
+        }
+
+        bool operator<(const Suppression &other) const {
+            if (errorId != other.errorId)
+                return errorId < other.errorId;
+            if (lineNumber < other.lineNumber)
+                return lineNumber < other.lineNumber;
+            if (fileName != other.fileName)
+                return fileName < other.fileName;
+            if (symbolName != other.symbolName)
+                return symbolName < other.symbolName;
+        };
+
+        bool isMatch(const ErrorMessage &errmsg);
+
+        std::string errorId;
+        std::string fileName;
+        int lineNumber;
+        std::string symbolName;
+        bool matched;
+
+        static const int NO_LINE = -1;
+    };
+
     /**
      * @brief Don't show errors listed in the file.
      * @param istr Open file stream where errors can be read.
@@ -118,49 +109,36 @@ public:
      * @param line number, e.g. "123"
      * @return error message. empty upon success
      */
-    std::string addSuppression(const std::string &errorId, const std::string &file = emptyString, unsigned int line = 0);
+    std::string addSuppression(const Suppression &suppression);
 
     /**
      * @brief Returns true if this message should not be shown to the user.
-     * @param errorId the id for the error, e.g. "arrayIndexOutOfBounds"
-     * @param file File name with the path, e.g. "src/main.cpp"
-     * @param line number, e.g. "123"
+     * @param errmsg error message
      * @return true if this error is suppressed.
      */
-    bool isSuppressed(const std::string &errorId, const std::string &file, unsigned int line);
+    bool isSuppressed(const ErrorMessage &errmsg);
 
     /**
      * @brief Returns true if this message should not be shown to the user (explicit files only, not glob patterns).
-     * @param errorId the id for the error, e.g. "arrayIndexOutOfBounds"
-     * @param file File name with the path, e.g. "src/main.cpp"
-     * @param line number, e.g. "123"
+     * @param errmsg error message
      * @return true if this error is suppressed.
      */
-    bool isSuppressedLocal(const std::string &errorId, const std::string &file, unsigned int line);
-
-    struct SuppressionEntry {
-        SuppressionEntry(const std::string &aid, const std::string &afile, unsigned int aline)
-            : id(aid), file(afile), line(aline), matched(false) {
-        }
-
-        std::string id;
-        std::string file;
-        unsigned int line;
-        std::string symbolName;
-        bool matched;
-    };
+    bool isSuppressedLocal(const ErrorMessage &errmsg);
 
     /**
      * @brief Returns list of unmatched local (per-file) suppressions.
      * @return list of unmatched suppressions
      */
-    std::list<SuppressionEntry> getUnmatchedLocalSuppressions(const std::string &file, const bool unusedFunctionChecking) const;
+    std::list<Suppression> getUnmatchedLocalSuppressions(const std::string &file, const bool unusedFunctionChecking) const;
 
     /**
      * @brief Returns list of unmatched global (glob pattern) suppressions.
      * @return list of unmatched suppressions
      */
-    std::list<SuppressionEntry> getUnmatchedGlobalSuppressions(const bool unusedFunctionChecking) const;
+    std::list<Suppression> getUnmatchedGlobalSuppressions(const bool unusedFunctionChecking) const;
+private:
+    /** @brief List of error which the user doesn't want to see. */
+    std::list<Suppression> _suppressions;
 };
 
 /// @}

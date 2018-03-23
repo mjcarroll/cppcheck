@@ -206,12 +206,26 @@ void ErrorLogger::ErrorMessage::setmsg(const std::string &msg)
             _symbolNames += msg.substr(8, pos-7);
             setmsg(msg.substr(pos + 1));
         } else {
-			const std::string symbolName = _symbolNames.empty() ? std::string() : _symbolNames.substr(0, _symbolNames.find('\n'));
+            const std::string symbolName = _symbolNames.empty() ? std::string() : _symbolNames.substr(0, _symbolNames.find('\n'));
             _shortMessage = replaceStr(msg.substr(0, pos), "$symbol", symbolName);
             _verboseMessage = replaceStr(msg.substr(pos + 1), "$symbol", symbolName);
         }
     }
 }
+
+Suppressions::ErrorMessage ErrorLogger::ErrorMessage::toSuppressionsErrorMessage() const
+{
+    Suppressions::ErrorMessage ret;
+    ret.errorId = _id;
+    if (!_callStack.empty()) {
+        ret.fileName = _callStack.back().getfile(false);
+        ret.lineNumber = _callStack.back().line;
+    }
+    ret.inconclusive = _inconclusive;
+    ret.symbolNames = _symbolNames;
+    return ret;
+}
+
 
 std::string ErrorLogger::ErrorMessage::serialize() const
 {
@@ -486,20 +500,20 @@ std::string ErrorLogger::ErrorMessage::toString(bool verbose, const std::string 
     }
 }
 
-void ErrorLogger::reportUnmatchedSuppressions(const std::list<Suppressions::SuppressionEntry> &unmatched)
+void ErrorLogger::reportUnmatchedSuppressions(const std::list<Suppressions::Suppression> &unmatched)
 {
     // Report unmatched suppressions
-    for (std::list<Suppressions::SuppressionEntry>::const_iterator i = unmatched.begin(); i != unmatched.end(); ++i) {
+    for (std::list<Suppressions::Suppression>::const_iterator i = unmatched.begin(); i != unmatched.end(); ++i) {
         // don't report "unmatchedSuppression" as unmatched
-        if (i->id == "unmatchedSuppression")
+        if (i->errorId == "unmatchedSuppression")
             continue;
 
         // check if this unmatched suppression is suppressed
         bool suppressed = false;
-        for (std::list<Suppressions::SuppressionEntry>::const_iterator i2 = unmatched.begin(); i2 != unmatched.end(); ++i2) {
-            if (i2->id == "unmatchedSuppression") {
-                if ((i2->file == "*" || i2->file == i->file) &&
-                    (i2->line == 0 || i2->line == i->line)) {
+        for (std::list<Suppressions::Suppression>::const_iterator i2 = unmatched.begin(); i2 != unmatched.end(); ++i2) {
+            if (i2->errorId == "unmatchedSuppression") {
+                if ((i2->fileName == "*" || i2->fileName == i->fileName) &&
+                    (i2->lineNumber == 0 || i2->lineNumber == i->lineNumber)) {
                     suppressed = true;
                     break;
                 }
@@ -510,8 +524,8 @@ void ErrorLogger::reportUnmatchedSuppressions(const std::list<Suppressions::Supp
             continue;
 
         const std::list<ErrorLogger::ErrorMessage::FileLocation> callStack = make_container< std::list<ErrorLogger::ErrorMessage::FileLocation> > ()
-                << ErrorLogger::ErrorMessage::FileLocation(i->file, i->line);
-        reportErr(ErrorLogger::ErrorMessage(callStack, emptyString, Severity::information, "Unmatched suppression: " + i->id, "unmatchedSuppression", false));
+                << ErrorLogger::ErrorMessage::FileLocation(i->fileName, i->lineNumber);
+        reportErr(ErrorLogger::ErrorMessage(callStack, emptyString, Severity::information, "Unmatched suppression: " + i->errorId, "unmatchedSuppression", false));
     }
 }
 

@@ -728,22 +728,17 @@ void CppCheck::reportErr(const ErrorLogger::ErrorMessage &msg)
     if (std::find(_errorList.begin(), _errorList.end(), errmsg) != _errorList.end())
         return;
 
-    std::string file;
-    unsigned int line(0);
-    if (!msg._callStack.empty()) {
-        file = msg._callStack.back().getfile(false);
-        line = msg._callStack.back().line;
-    }
+    const Suppressions::ErrorMessage errorMessage = msg.toSuppressionsErrorMessage();
 
     if (_useGlobalSuppressions) {
-        if (_settings.nomsg.isSuppressed(msg._id, file, line))
+        if (_settings.nomsg.isSuppressed(errorMessage))
             return;
     } else {
-        if (_settings.nomsg.isSuppressedLocal(msg._id, file, line))
+        if (_settings.nomsg.isSuppressedLocal(errorMessage))
             return;
     }
 
-    if (!_settings.nofail.isSuppressed(msg._id, file, line) && !_settings.nomsg.isSuppressed(msg._id, file, line))
+    if (!_settings.nofail.isSuppressed(errorMessage) && !_settings.nomsg.isSuppressed(errorMessage))
         exitcode = 1;
 
     _errorList.push_back(errmsg);
@@ -767,18 +762,12 @@ void CppCheck::reportProgress(const std::string &filename, const char stage[], c
 
 void CppCheck::reportInfo(const ErrorLogger::ErrorMessage &msg)
 {
-    // Suppressing info message?
-    std::string file;
-    unsigned int line(0);
-    if (!msg._callStack.empty()) {
-        file = msg._callStack.back().getfile(false);
-        line = msg._callStack.back().line;
-    }
+	const Suppressions::ErrorMessage &errorMessage = msg.toSuppressionsErrorMessage();
     if (_useGlobalSuppressions) {
-        if (_settings.nomsg.isSuppressed(msg._id, file, line))
+        if (_settings.nomsg.isSuppressed(errorMessage))
             return;
     } else {
-        if (_settings.nomsg.isSuppressedLocal(msg._id, file, line))
+        if (_settings.nomsg.isSuppressedLocal(errorMessage))
             return;
     }
 

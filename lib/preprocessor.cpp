@@ -101,7 +101,11 @@ static void inlineSuppressions(const simplecpp::TokenList &tokens, Settings &_se
 
         // Add the suppressions.
         for (std::list<std::string>::const_iterator it = suppressionIDs.begin(); it != suppressionIDs.end(); ++it) {
-            _settings.nomsg.addSuppression(*it, relativeFilename, tok->location.line);
+			Suppressions::Suppression s;
+			s.errorId = *it;
+			s.fileName = relativeFilename;
+			s.lineNumber = tok->location.line;
+            _settings.nomsg.addSuppression(s);
         }
         suppressionIDs.clear();
     }
@@ -713,9 +717,14 @@ void Preprocessor::error(const std::string &filename, unsigned int linenr, const
 void Preprocessor::missingInclude(const std::string &filename, unsigned int linenr, const std::string &header, HeaderTypes headerType)
 {
     const std::string fname = Path::fromNativeSeparators(filename);
-    if (_settings.nomsg.isSuppressed("missingInclude", fname, linenr))
+    Suppressions::ErrorMessage errorMessage;
+    errorMessage.errorId = "missingInclude";
+    errorMessage.fileName = fname;
+    errorMessage.lineNumber = linenr;
+    if (_settings.nomsg.isSuppressed(errorMessage))
         return;
-    if (headerType == SystemHeader && _settings.nomsg.isSuppressed("missingIncludeSystem", fname, linenr))
+    errorMessage.errorId = "missingIncludeSystem";
+    if (headerType == SystemHeader && _settings.nomsg.isSuppressed(errorMessage))
         return;
 
     if (headerType == SystemHeader)
