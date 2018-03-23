@@ -762,7 +762,7 @@ void CppCheck::reportProgress(const std::string &filename, const char stage[], c
 
 void CppCheck::reportInfo(const ErrorLogger::ErrorMessage &msg)
 {
-	const Suppressions::ErrorMessage &errorMessage = msg.toSuppressionsErrorMessage();
+    const Suppressions::ErrorMessage &errorMessage = msg.toSuppressionsErrorMessage();
     if (_useGlobalSuppressions) {
         if (_settings.nomsg.isSuppressed(errorMessage))
             return;

@@ -77,7 +77,7 @@ std::string Suppressions::parseXmlFile(const char *filename)
                 else if (std::strcmp(e2->Name(), "lineNumber") == 0)
                     s.lineNumber = std::atoi(text);
                 else if (std::strcmp(e2->Name(), "symbolName") == 0)
-                    s.symbolName = std::atoi(text);
+                    s.symbolName = text;
             }
             addSuppression(s);
         }
@@ -117,7 +117,7 @@ std::string Suppressions::addSuppressionLine(const std::string &line)
         }
     }
 
-	suppression.fileName = Path::fromNativeSeparators(suppression.fileName);
+    suppression.fileName = Path::fromNativeSeparators(suppression.fileName);
 
     return addSuppression(suppression);
 }
@@ -268,36 +268,36 @@ std::string Suppressions::addSuppression(const Suppressions::Suppression &suppre
 
 bool Suppressions::Suppression::isMatch(const Suppressions::ErrorMessage &errmsg)
 {
-	if (!errorId.empty() && errorId != errmsg.errorId)
-		return false;
-	if (!fileName.empty() && fileName != errmsg.fileName)
-		return false;
-	if (lineNumber > 0 && lineNumber != errmsg.lineNumber)
-		return false;
-	if (!symbolName.empty() && errmsg.symbolNames.find(symbolName + '\n') == std::string::npos)
-		return false;
-	matched = true;
-	return true;
+    if (!errorId.empty() && errorId != errmsg.errorId)
+        return false;
+    if (!fileName.empty() && fileName != errmsg.fileName)
+        return false;
+    if (lineNumber > 0 && lineNumber != errmsg.lineNumber)
+        return false;
+    if (!symbolName.empty() && errmsg.symbolNames.find(symbolName + '\n') == std::string::npos)
+        return false;
+    matched = true;
+    return true;
 }
 
 bool Suppressions::isSuppressed(const Suppressions::ErrorMessage &errmsg)
 {
-	// TODO a set does not work well maybe
+    // TODO a set does not work well maybe
     for (Suppression &s : _suppressions) {
-		if (s.isMatch(errmsg))
-			return true;
-	}
-	return false;
+        if (s.isMatch(errmsg))
+            return true;
+    }
+    return false;
 }
 
 bool Suppressions::isSuppressedLocal(const Suppressions::ErrorMessage &errmsg)
 {
-	// TODO a set does not work well maybe
+    // TODO a set does not work well maybe
     for (Suppression &s : _suppressions) {
-		if (s.isMatch(errmsg))
-			return true;
-	}
-	return false;
+        if (s.isMatch(errmsg))
+            return true;
+    }
+    return false;
 }
 
 std::list<Suppressions::Suppression> Suppressions::getUnmatchedLocalSuppressions(const std::string &/*file*/, const bool /*unusedFunctionChecking*/) const

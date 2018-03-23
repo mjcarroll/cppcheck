@@ -756,41 +756,41 @@ private:
             ASSERT_EQUALS(true, GET_REDIRECT_OUTPUT.find("If you want to pass two files") != std::string::npos);
         }
     }
-/*
-    void suppressionSingle() {
-        REDIRECT;
-        const char *argv[] = {"cppcheck", "--suppress=uninitvar", "file.cpp"};
-        settings = Settings();
-        ASSERT(defParser.ParseFromArgs(3, argv));
-        ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
-    }
+    /*
+        void suppressionSingle() {
+            REDIRECT;
+            const char *argv[] = {"cppcheck", "--suppress=uninitvar", "file.cpp"};
+            settings = Settings();
+            ASSERT(defParser.ParseFromArgs(3, argv));
+            ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
+        }
 
-    void suppressionSingleFile() {
-        REDIRECT;
-        const char *argv[] = {"cppcheck", "--suppress=uninitvar:file.cpp", "file.cpp"};
-        settings = Settings();
-        ASSERT(defParser.ParseFromArgs(3, argv));
-        ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
-    }
+        void suppressionSingleFile() {
+            REDIRECT;
+            const char *argv[] = {"cppcheck", "--suppress=uninitvar:file.cpp", "file.cpp"};
+            settings = Settings();
+            ASSERT(defParser.ParseFromArgs(3, argv));
+            ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
+        }
 
-    void suppressionTwo() {
-        REDIRECT;
-        const char *argv[] = {"cppcheck", "--suppress=uninitvar,noConstructor", "file.cpp"};
-        settings = Settings();
-        TODO_ASSERT_EQUALS(true, false, defParser.ParseFromArgs(3, argv));
-        TODO_ASSERT_EQUALS(true, false, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
-        TODO_ASSERT_EQUALS(true, false, settings.nomsg.isSuppressed("noConstructor", "file.cpp", 1U));
-    }
+        void suppressionTwo() {
+            REDIRECT;
+            const char *argv[] = {"cppcheck", "--suppress=uninitvar,noConstructor", "file.cpp"};
+            settings = Settings();
+            TODO_ASSERT_EQUALS(true, false, defParser.ParseFromArgs(3, argv));
+            TODO_ASSERT_EQUALS(true, false, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
+            TODO_ASSERT_EQUALS(true, false, settings.nomsg.isSuppressed("noConstructor", "file.cpp", 1U));
+        }
 
-    void suppressionTwoSeparate() {
-        REDIRECT;
-        const char *argv[] = {"cppcheck", "--suppress=uninitvar", "--suppress=noConstructor", "file.cpp"};
-        settings = Settings();
-        ASSERT(defParser.ParseFromArgs(4, argv));
-        ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
-        ASSERT_EQUALS(true, settings.nomsg.isSuppressed("noConstructor", "file.cpp", 1U));
-    }
-*/
+        void suppressionTwoSeparate() {
+            REDIRECT;
+            const char *argv[] = {"cppcheck", "--suppress=uninitvar", "--suppress=noConstructor", "file.cpp"};
+            settings = Settings();
+            ASSERT(defParser.ParseFromArgs(4, argv));
+            ASSERT_EQUALS(true, settings.nomsg.isSuppressed("uninitvar", "file.cpp", 1U));
+            ASSERT_EQUALS(true, settings.nomsg.isSuppressed("noConstructor", "file.cpp", 1U));
+        }
+    */
     void templates() {
         REDIRECT;
         const char *argv[] = {"cppcheck", "--template", "{file}:{line},{severity},{id},{message}", "file.cpp"};

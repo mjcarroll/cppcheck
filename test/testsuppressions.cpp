@@ -38,24 +38,24 @@ public:
 private:
 
     void run() {
-/*
-        TEST_CASE(suppressionsBadId1);
-        TEST_CASE(suppressionsDosFormat);     // Ticket #1836
-        TEST_CASE(suppressionsFileNameWithColon);    // Ticket #1919 - filename includes colon
-        TEST_CASE(suppressionsGlob);
-        TEST_CASE(suppressionsFileNameWithExtraPath);
-        TEST_CASE(suppressionsSettings);
-        TEST_CASE(suppressionsMultiFile);
-        TEST_CASE(suppressionsPathSeparator);
+        /*
+                TEST_CASE(suppressionsBadId1);
+                TEST_CASE(suppressionsDosFormat);     // Ticket #1836
+                TEST_CASE(suppressionsFileNameWithColon);    // Ticket #1919 - filename includes colon
+                TEST_CASE(suppressionsGlob);
+                TEST_CASE(suppressionsFileNameWithExtraPath);
+                TEST_CASE(suppressionsSettings);
+                TEST_CASE(suppressionsMultiFile);
+                TEST_CASE(suppressionsPathSeparator);
 
-        TEST_CASE(inlinesuppress_unusedFunction); // #4210 - unusedFunction
-        TEST_CASE(globalsuppress_unusedFunction); // #4946
-        TEST_CASE(suppressionWithRelativePaths); // #4733
-        TEST_CASE(suppressingSyntaxErrors); // #7076
-        TEST_CASE(suppressingSyntaxErrorsInline); // #5917
+                TEST_CASE(inlinesuppress_unusedFunction); // #4210 - unusedFunction
+                TEST_CASE(globalsuppress_unusedFunction); // #4946
+                TEST_CASE(suppressionWithRelativePaths); // #4733
+                TEST_CASE(suppressingSyntaxErrors); // #7076
+                TEST_CASE(suppressingSyntaxErrorsInline); // #5917
 
-        TEST_CASE(unusedFunction);
-*/
+                TEST_CASE(unusedFunction);
+        */
     }
 #if 0
     void suppressionsBadId1() const {

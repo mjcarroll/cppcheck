@@ -101,10 +101,10 @@ static void inlineSuppressions(const simplecpp::TokenList &tokens, Settings &_se
 
         // Add the suppressions.
         for (std::list<std::string>::const_iterator it = suppressionIDs.begin(); it != suppressionIDs.end(); ++it) {
-			Suppressions::Suppression s;
-			s.errorId = *it;
-			s.fileName = relativeFilename;
-			s.lineNumber = tok->location.line;
+            Suppressions::Suppression s;
+            s.errorId = *it;
+            s.fileName = relativeFilename;
+            s.lineNumber = tok->location.line;
             _settings.nomsg.addSuppression(s);
         }
         suppressionIDs.clear();

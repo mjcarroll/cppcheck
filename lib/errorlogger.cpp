@@ -198,18 +198,16 @@ void ErrorLogger::ErrorMessage::setmsg(const std::string &msg)
     // If there is no newline then both the summary and verbose messages
     // are the given message
     const std::string::size_type pos = msg.find('\n');
+    const std::string symbolName = _symbolNames.empty() ? std::string() : _symbolNames.substr(0, _symbolNames.find('\n'));
     if (pos == std::string::npos) {
-        _shortMessage = msg;
-        _verboseMessage = msg;
+        _shortMessage = replaceStr(msg, "$symbol", symbolName);
+        _verboseMessage = replaceStr(msg, "$symbol", symbolName);
+    } else if (msg.compare(0,8,"$symbol:") == 0) {
+        _symbolNames += msg.substr(8, pos-7);
+        setmsg(msg.substr(pos + 1));
     } else {
-        if (msg.compare(0,8,"$symbol:") == 0) {
-            _symbolNames += msg.substr(8, pos-7);
-            setmsg(msg.substr(pos + 1));
-        } else {
-            const std::string symbolName = _symbolNames.empty() ? std::string() : _symbolNames.substr(0, _symbolNames.find('\n'));
-            _shortMessage = replaceStr(msg.substr(0, pos), "$symbol", symbolName);
-            _verboseMessage = replaceStr(msg.substr(pos + 1), "$symbol", symbolName);
-        }
+        _shortMessage = replaceStr(msg.substr(0, pos), "$symbol", symbolName);
+        _verboseMessage = replaceStr(msg.substr(pos + 1), "$symbol", symbolName);
     }
 }
 
