@@ -28,7 +28,7 @@
 #include <sstream>
 #include <utility>
 
-static bool validGlobPattern(const std::string &pattern)
+static bool isValidGlobPattern(const std::string &pattern)
 {
     for (std::string::const_iterator i = pattern.begin(); i != pattern.end(); ++i) {
         if (*i == '*' || *i == '?') {
@@ -154,9 +154,9 @@ std::string Suppressions::addSuppression(const Suppressions::Suppression &suppre
         }
     }
 
-    if (!validGlobPattern(suppression.errorId))
+    if (!isValidGlobPattern(suppression.errorId))
         return "Failed to add suppression. Invalid glob pattern '" + suppression.errorId + "'.";
-    if (!validGlobPattern(suppression.fileName))
+    if (!isValidGlobPattern(suppression.fileName))
         return "Failed to add suppression. Invalid glob pattern '" + suppression.fileName + "'.";
 
     _suppressions.push_back(suppression);

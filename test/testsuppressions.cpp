@@ -218,7 +218,6 @@ private:
     }
 
     void runChecks(unsigned int (TestSuppressions::*check)(const char[], const std::string &)) {
-#if 0
         // check to make sure the appropriate error is present
         (this->*check)("void f() {\n"
                        "    int a;\n"
@@ -241,7 +240,7 @@ private:
                        "    b++;\n"
                        "}\n",
                        "uninitvar");
-        ASSERT_EQUALS("[*]: (information) Unmatched suppression: uninitvar\n", errout.str());
+        ASSERT_EQUALS("(information) Unmatched suppression: uninitvar\n", errout.str());
 
         // suppress uninitvar for this file only
         (this->*check)("void f() {\n"
@@ -361,7 +360,6 @@ private:
                                      "  int a; return a;\n"
                                      "}\n",
                                      "uninitvar"));
-#endif
     }
 
     void suppressionsSettings() {
