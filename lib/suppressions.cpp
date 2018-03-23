@@ -121,7 +121,7 @@ std::string Suppressions::addSuppressionLine(const std::string &line)
 
     return addSuppression(suppression);
 }
-*/
+
 std::string Suppressions::addSuppression(const Suppressions::Suppression &suppression)
 {
     // Check that errorId is valid..

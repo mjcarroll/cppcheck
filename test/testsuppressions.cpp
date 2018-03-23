@@ -38,7 +38,6 @@ public:
 private:
 
     void run() {
-        /*
                 TEST_CASE(suppressionsBadId1);
                 TEST_CASE(suppressionsDosFormat);     // Ticket #1836
                 TEST_CASE(suppressionsFileNameWithColon);    // Ticket #1919 - filename includes colon
@@ -55,9 +54,8 @@ private:
                 TEST_CASE(suppressingSyntaxErrorsInline); // #5917
 
                 TEST_CASE(unusedFunction);
-        */
     }
-#if 0
+
     void suppressionsBadId1() const {
         Suppressions suppressions;
         std::istringstream s1("123");
@@ -67,21 +65,35 @@ private:
         ASSERT_EQUALS("", suppressions.parseFile(s2));
     }
 
+	Suppressions::ErrorMessage errorMessage(const std::string &errorId) const {
+		Suppressions::ErrorMessage ret;
+		ret.errorId = errorId;
+		return ret;
+	}
+
+	Suppressions::ErrorMessage errorMessage(const std::string &errorId, const std::string &file, int line) const {
+		Suppressions::ErrorMessage ret;
+		ret.errorId = errorId;
+		ret.fileName = file;
+		ret.lineNumber = line;
+		return ret;
+	}
+
     void suppressionsDosFormat() const {
         Suppressions suppressions;
         std::istringstream s("abc\r\ndef\r\n");
         ASSERT_EQUALS("", suppressions.parseFile(s));
-        ASSERT_EQUALS(true, suppressions.isSuppressed("abc", "test.cpp", 1));
-        ASSERT_EQUALS(true, suppressions.isSuppressed("def", "test.cpp", 1));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("abc")));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("def")));
     }
 
     void suppressionsFileNameWithColon() const {
         Suppressions suppressions;
         std::istringstream s("errorid:c:\\foo.cpp\nerrorid:c:\\bar.cpp:12");
         ASSERT_EQUALS("", suppressions.parseFile(s));
-        ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "c:/foo.cpp", 1111));
-        ASSERT_EQUALS(false, suppressions.isSuppressed("errorid", "c:/bar.cpp", 10));
-        ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "c:/bar.cpp", 12));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "c:/foo.cpp", 1111)));
+        ASSERT_EQUALS(false, suppressions.isSuppressed(errorMessage("errorid", "c:/bar.cpp", 10)));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "c:/bar.cpp", 12)));
     }
 
     void suppressionsGlob() const {
@@ -97,13 +109,13 @@ private:
             Suppressions suppressions;
             std::istringstream s("errorid:x*.cpp\nerrorid:y?.cpp\nerrorid:test.c*");
             ASSERT_EQUALS("", suppressions.parseFile(s));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "xyz.cpp", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "xyz.cpp.cpp", 1));
-            ASSERT_EQUALS(false, suppressions.isSuppressed("errorid", "abc.cpp", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "ya.cpp", 1));
-            ASSERT_EQUALS(false, suppressions.isSuppressed("errorid", "y.cpp", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "test.c", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "test.cpp", 1));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "xyz.cpp", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "xyz.cpp.cpp", 1)));
+            ASSERT_EQUALS(false, suppressions.isSuppressed(errorMessage("errorid", "abc.cpp", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "ya.cpp", 1)));
+            ASSERT_EQUALS(false, suppressions.isSuppressed(errorMessage("errorid", "y.cpp", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "test.c", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "test.cpp", 1)));
         }
 
         // Check that both a filename match and a glob match apply
@@ -111,18 +123,18 @@ private:
             Suppressions suppressions;
             std::istringstream s("errorid:x*.cpp\nerrorid:xyz.cpp:1\nerrorid:a*.cpp:1\nerrorid:abc.cpp:2");
             ASSERT_EQUALS("", suppressions.parseFile(s));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "xyz.cpp", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "xyz.cpp", 2));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "abc.cpp", 1));
-            ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "abc.cpp", 2));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "xyz.cpp", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "xyz.cpp", 2)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "abc.cpp", 1)));
+            ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "abc.cpp", 2)));
         }
     }
 
     void suppressionsFileNameWithExtraPath() const {
         // Ticket #2797
         Suppressions suppressions;
-        suppressions.addSuppression("errorid", "./a.c", 123);
-        ASSERT_EQUALS(true, suppressions.isSuppressed("errorid", "a.c", 123));
+        suppressions.addSuppression(Suppressions::Suppression("errorid", "./a.c", 123));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("errorid", "a.c", 123)));
     }
 
     void reportSuppressions(const Settings &settings, const std::map<std::string, std::string> &files) {
@@ -373,15 +385,15 @@ private:
     void suppressionsPathSeparator() const {
         Suppressions suppressions;
         suppressions.addSuppressionLine("*:test\\*");
-        ASSERT_EQUALS(true, suppressions.isSuppressed("someid", "test/foo/bar.cpp", 142));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("someid", "test/foo/bar.cpp", 142)));
 
         suppressions.addSuppressionLine("abc:include/1.h");
-        ASSERT_EQUALS(true, suppressions.isSuppressed("abc", "include\\1.h", 142));
+        ASSERT_EQUALS(true, suppressions.isSuppressed(errorMessage("abc", "include\\1.h", 142)));
     }
 
     void inlinesuppress_unusedFunction() const { // #4210, #4946 - wrong report of "unmatchedSuppression" for "unusedFunction"
         Suppressions suppressions;
-        suppressions.addSuppression("unusedFunction", "test.c", 3U);
+        suppressions.addSuppression(Suppressions::Suppression("unusedFunction", "test.c", 3));
         ASSERT_EQUALS(true, !suppressions.getUnmatchedLocalSuppressions("test.c", true).empty());
         ASSERT_EQUALS(false, !suppressions.getUnmatchedGlobalSuppressions(true).empty());
         ASSERT_EQUALS(false, !suppressions.getUnmatchedLocalSuppressions("test.c", false).empty());
@@ -446,7 +458,6 @@ private:
     void unusedFunction() {
         ASSERT_EQUALS(0, checkSuppression("void f() {}", "unusedFunction"));
     }
-#endif
 };
 
 REGISTER_TEST(TestSuppressions)
