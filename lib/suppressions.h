@@ -47,7 +47,7 @@ public:
         Suppression(const Suppression &other) {
             *this = other;
         }
-        Suppression(const std::string &id, const std::string &file, int line) : errorId(id), fileName(file), lineNumber(line), matched(false) {}
+        Suppression(const std::string &id, const std::string &file, int line=0) : errorId(id), fileName(file), lineNumber(line), matched(false) {}
 
         Suppression & operator=(const Suppression &other) {
             errorId = other.errorId;
@@ -68,6 +68,8 @@ public:
             if (symbolName != other.symbolName)
                 return symbolName < other.symbolName;
         };
+
+        bool isSuppressed(const ErrorMessage &errmsg) const;
 
         bool isMatch(const ErrorMessage &errmsg);
 
