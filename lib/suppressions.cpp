@@ -121,8 +121,30 @@ std::string Suppressions::addSuppressionLine(const std::string &line)
 
     return addSuppression(suppression);
 }
-/*
-bool Suppressions::FileMatcher::match(const std::string &pattern, const std::string &name)
+*/
+std::string Suppressions::addSuppression(const Suppressions::Suppression &suppression)
+{
+    // Check that errorId is valid..
+    if (suppression.errorId.empty()) {
+        return "Failed to add suppression. No id.";
+    }
+    if (suppression.errorId != "*") {
+        for (std::string::size_type pos = 0; pos < suppression.errorId.length(); ++pos) {
+            if (suppression.errorId[pos] < 0 || (!std::isalnum(suppression.errorId[pos]) && suppression.errorId[pos] != '_')) {
+                return "Failed to add suppression. Invalid id \"" + suppression.errorId + "\"";
+            }
+            if (pos == 0 && std::isdigit(suppression.errorId[pos])) {
+                return "Failed to add suppression. Invalid id \"" + suppression.errorId + "\"";
+            }
+        }
+    }
+
+    _suppressions.push_back(suppression);
+
+    return "";
+}
+
+static bool matchglob(const std::string &pattern, const std::string &name)
 {
     const char *p = pattern.c_str();
     const char *n = name.c_str();
@@ -180,90 +202,6 @@ bool Suppressions::FileMatcher::match(const std::string &pattern, const std::str
         // Advance name pointer by one because the current position didn't work
         n++;
     }
-}
-
-std::string Suppressions::FileMatcher::addFile(const std::string &name, unsigned int line)
-{
-    if (name.find_first_of("*?") != std::string::npos) {
-        for (std::string::const_iterator i = name.begin(); i != name.end(); ++i) {
-            if (*i == '*') {
-                std::string::const_iterator j = i + 1;
-                if (j != name.end() && (*j == '*' || *j == '?')) {
-                    return "Failed to add suppression. Syntax error in glob.";
-                }
-            }
-        }
-        _globs[name][line] = false;
-    } else if (name.empty()) {
-        _globs["*"][0U] = false;
-    } else {
-        _files[Path::simplifyPath(name)][line] = false;
-    }
-    return "";
-}
-
-bool Suppressions::FileMatcher::isSuppressed(const std::string &file, unsigned int line)
-{
-    if (isSuppressedLocal(file, line))
-        return true;
-
-    for (std::map<std::string, std::map<unsigned int, bool> >::iterator g = _globs.begin(); g != _globs.end(); ++g) {
-        if (match(g->first, file)) {
-            std::map<unsigned int, bool>::iterator l = g->second.find(0U);
-            if (l != g->second.end()) {
-                l->second = true;
-                return true;
-            }
-            l = g->second.find(line);
-            if (l != g->second.end()) {
-                l->second = true;
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-bool Suppressions::FileMatcher::isSuppressedLocal(const std::string &file, unsigned int line)
-{
-    std::map<std::string, std::map<unsigned int, bool> >::iterator f = _files.find(Path::fromNativeSeparators(file));
-    if (f != _files.end()) {
-        std::map<unsigned int, bool>::iterator l = f->second.find(0U);
-        if (l != f->second.end()) {
-            l->second = true;
-            return true;
-        }
-        l = f->second.find(line);
-        if (l != f->second.end()) {
-            l->second = true;
-            return true;
-        }
-    }
-
-    return false;
-}
-*/
-std::string Suppressions::addSuppression(const Suppressions::Suppression &suppression)
-{
-    // Check that errorId is valid..
-    if (suppression.errorId.empty()) {
-        return "Failed to add suppression. No id.";
-    }
-    if (suppression.errorId != "*") {
-        for (std::string::size_type pos = 0; pos < suppression.errorId.length(); ++pos) {
-            if (suppression.errorId[pos] < 0 || (!std::isalnum(suppression.errorId[pos]) && suppression.errorId[pos] != '_')) {
-                return "Failed to add suppression. Invalid id \"" + suppression.errorId + "\"";
-            }
-            if (pos == 0 && std::isdigit(suppression.errorId[pos])) {
-                return "Failed to add suppression. Invalid id \"" + suppression.errorId + "\"";
-            }
-        }
-    }
-
-    _suppressions.push_back(suppression);
-
-    return "";
 }
 
 bool Suppressions::Suppression::isMatch(const Suppressions::ErrorMessage &errmsg)
