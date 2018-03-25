@@ -730,15 +730,10 @@ void CppCheck::reportErr(const ErrorLogger::ErrorMessage &msg)
 
     const Suppressions::ErrorMessage errorMessage = msg.toSuppressionsErrorMessage();
 
-    if (_useGlobalSuppressions) {
-        if (_settings.nomsg.isSuppressed(errorMessage))
-            return;
-    } else {
-        if (_settings.nomsg.isSuppressedLocal(errorMessage))
-            return;
-    }
+    if (_settings.nomsg.isSuppressed(errorMessage))
+        return;
 
-    if (!_settings.nofail.isSuppressed(errorMessage) && !_settings.nomsg.isSuppressed(errorMessage))
+    if (!_settings.nofail.isSuppressed(errorMessage))
         exitcode = 1;
 
     _errorList.push_back(errmsg);
@@ -763,15 +758,8 @@ void CppCheck::reportProgress(const std::string &filename, const char stage[], c
 void CppCheck::reportInfo(const ErrorLogger::ErrorMessage &msg)
 {
     const Suppressions::ErrorMessage &errorMessage = msg.toSuppressionsErrorMessage();
-    if (_useGlobalSuppressions) {
-        if (_settings.nomsg.isSuppressed(errorMessage))
-            return;
-    } else {
-        if (_settings.nomsg.isSuppressedLocal(errorMessage))
-            return;
-    }
-
-    _errorLogger.reportInfo(msg);
+    if (!_settings.nomsg.isSuppressed(errorMessage))
+        _errorLogger.reportInfo(msg);
 }
 
 void CppCheck::reportStatus(unsigned int /*fileindex*/, unsigned int /*filecount*/, std::size_t /*sizedone*/, std::size_t /*sizetotal*/)

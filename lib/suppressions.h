@@ -121,13 +121,6 @@ public:
     bool isSuppressed(const ErrorMessage &errmsg);
 
     /**
-     * @brief Returns true if this message should not be shown to the user (explicit files only, not glob patterns).
-     * @param errmsg error message
-     * @return true if this error is suppressed.
-     */
-    bool isSuppressedLocal(const ErrorMessage &errmsg);
-
-    /**
      * @brief Returns list of unmatched local (per-file) suppressions.
      * @return list of unmatched suppressions
      */

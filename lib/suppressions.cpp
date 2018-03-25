@@ -261,18 +261,6 @@ bool Suppressions::isSuppressed(const Suppressions::ErrorMessage &errmsg)
     return false;
 }
 
-bool Suppressions::isSuppressedLocal(const Suppressions::ErrorMessage &errmsg)
-{
-    const bool unmatchedSuppression(errmsg.errorId == "unmatchedSuppression");
-    for (Suppression &s : _suppressions) {
-        if (unmatchedSuppression && s.errorId != errmsg.errorId)
-            continue;
-        if (s.isMatch(errmsg))
-            return true;
-    }
-    return false;
-}
-
 std::list<Suppressions::Suppression> Suppressions::getUnmatchedLocalSuppressions(const std::string &file, const bool unusedFunctionChecking) const
 {
     std::list<Suppression> result;
