@@ -251,8 +251,10 @@ bool Suppressions::Suppression::isMatch(const Suppressions::ErrorMessage &errmsg
 
 bool Suppressions::isSuppressed(const Suppressions::ErrorMessage &errmsg)
 {
-    // TODO a set does not work well maybe
+    const bool unmatchedSuppression(errmsg.errorId == "unmatchedSuppression");
     for (Suppression &s : _suppressions) {
+        if (unmatchedSuppression && s.errorId != errmsg.errorId)
+            continue;
         if (s.isMatch(errmsg))
             return true;
     }
@@ -261,8 +263,10 @@ bool Suppressions::isSuppressed(const Suppressions::ErrorMessage &errmsg)
 
 bool Suppressions::isSuppressedLocal(const Suppressions::ErrorMessage &errmsg)
 {
-    // TODO a set does not work well maybe
+    const bool unmatchedSuppression(errmsg.errorId == "unmatchedSuppression");
     for (Suppression &s : _suppressions) {
+        if (unmatchedSuppression && s.errorId != errmsg.errorId)
+            continue;
         if (s.isMatch(errmsg))
             return true;
     }

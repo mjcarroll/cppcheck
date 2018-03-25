@@ -1681,6 +1681,6 @@ void CheckStl::readingEmptyStlContainer()
 
 void CheckStl::readingEmptyStlContainerError(const Token *tok)
 {
-	const std::string varname = tok ? tok->str() : std::string("var");
+    const std::string varname = tok ? tok->str() : std::string("var");
     reportError(tok, Severity::style, "reademptycontainer", "$symbol:" + varname +"\nReading from empty STL container '$symbol'", CWE398, true);
 }
