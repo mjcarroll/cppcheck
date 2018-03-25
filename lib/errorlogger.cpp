@@ -406,6 +406,20 @@ std::string ErrorLogger::ErrorMessage::toXML() const
             printer.PushAttribute("info", it->getinfo().c_str());
         printer.CloseElement(false);
     }
+    for (std::string::size_type pos = 0; pos < _symbolNames.size();) {
+        const std::string::size_type pos2 = _symbolNames.find('\n', pos);
+        std::string symbolName;
+        if (pos2 == std::string::npos) {
+            symbolName = _symbolNames.substr(pos);
+            pos = pos2;
+        } else {
+            symbolName = _symbolNames.substr(pos, pos2-pos);
+            pos = pos2 + 1;
+        }
+        printer.OpenElement("symbol", false);
+        printer.PushText(symbolName.c_str());
+        printer.CloseElement(false);
+    }
     printer.CloseElement(false);
     return printer.CStr();
 }
