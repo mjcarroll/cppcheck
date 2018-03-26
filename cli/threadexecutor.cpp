@@ -495,14 +495,7 @@ void ThreadExecutor::reportInfo(const ErrorLogger::ErrorMessage &msg)
 
 void ThreadExecutor::report(const ErrorLogger::ErrorMessage &msg, MessageType msgType)
 {
-    std::string file;
-    unsigned int line(0);
-    if (!msg._callStack.empty()) {
-        file = msg._callStack.back().getfile(false);
-        line = msg._callStack.back().line;
-    }
-
-    if (_settings.nomsg.isSuppressed(msg._id, file, line))
+    if (_settings.nomsg.isSuppressed(msg.toSuppressionsErrorMessage()))
         return;
 
     // Alert only about unique errors
