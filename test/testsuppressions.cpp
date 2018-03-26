@@ -53,6 +53,8 @@ private:
         TEST_CASE(suppressingSyntaxErrors); // #7076
         TEST_CASE(suppressingSyntaxErrorsInline); // #5917
 
+        TEST_CASE(symbol);
+
         TEST_CASE(unusedFunction);
     }
 
@@ -452,6 +454,28 @@ private:
                             "}";
         checkSuppression(files, "");
         ASSERT_EQUALS("", errout.str());
+    }
+
+    void symbol() {
+        Suppressions::Suppression s;
+        s.errorId = "foo";
+        s.symbolName = "array*";
+
+        Suppressions::ErrorMessage errmsg;
+        errmsg.errorId = "foo";
+        errmsg.fileName = "test.cpp";
+        errmsg.lineNumber = 123;
+        errmsg.symbolNames = "";
+        ASSERT_EQUALS(false, s.isSuppressed(errmsg));
+        errmsg.symbolNames = "x\n";
+        ASSERT_EQUALS(false, s.isSuppressed(errmsg));
+        errmsg.symbolNames = "array1\n";
+        ASSERT_EQUALS(true, s.isSuppressed(errmsg));
+        errmsg.symbolNames = "x\narray2\n";
+        ASSERT_EQUALS(true, s.isSuppressed(errmsg));
+        errmsg.symbolNames = "array3\nx\n";
+        ASSERT_EQUALS(true, s.isSuppressed(errmsg));
+
     }
 
     void unusedFunction() {

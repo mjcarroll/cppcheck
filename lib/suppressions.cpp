@@ -236,8 +236,22 @@ bool Suppressions::Suppression::isSuppressed(const Suppressions::ErrorMessage &e
         return false;
     if (lineNumber > 0 && lineNumber != errmsg.lineNumber)
         return false;
-    if (!symbolName.empty() && errmsg.symbolNames.find(symbolName + '\n') == std::string::npos)
+    if (!symbolName.empty()) {
+        for (std::string::size_type pos = 0; pos < errmsg.symbolNames.size();) {
+            const std::string::size_type pos2 = errmsg.symbolNames.find('\n',pos);
+            std::string symname;
+            if (pos2 == std::string::npos) {
+                symname = errmsg.symbolNames.substr(pos);
+                pos = pos2;
+            } else {
+                symname = errmsg.symbolNames.substr(pos,pos2-pos);
+                pos = pos2+1;
+            }
+            if (matchglob(symbolName, symname))
+                return true;
+        }
         return false;
+    }
     return true;
 }
 
