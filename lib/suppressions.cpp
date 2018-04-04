@@ -79,7 +79,7 @@ std::string Suppressions::parseXmlFile(const char *filename)
 
     const tinyxml2::XMLElement * const rootnode = doc.FirstChildElement();
     for (const tinyxml2::XMLElement * e = rootnode->FirstChildElement(); e; e = e->NextSiblingElement()) {
-        if (std::strcmp(e->Name(), "suppress")) {
+        if (std::strcmp(e->Name(), "suppress") == 0) {
             Suppression s;
             for (const tinyxml2::XMLElement * e2 = e->FirstChildElement(); e2; e2 = e2->NextSiblingElement()) {
                 const char *text = e2->GetText() ? e2->GetText() : "";
