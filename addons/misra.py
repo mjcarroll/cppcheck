@@ -303,11 +303,67 @@ def findInclude(directives, header):
     return None
 
 
+# Get function arguments
+def getArgumentsRecursive(tok, arguments):
+    if tok is None:
+        return
+    if tok.str == ',':
+        getArgumentsRecursive(tok.astOperand1, arguments)
+        getArgumentsRecursive(tok.astOperand2, arguments)
+    else:
+        arguments.append(tok);
+
+def getArguments(ftok):
+    arguments = []
+    getArgumentsRecursive(ftok.astOperand2, arguments)
+    return arguments
+
+
+def isHexDigit(c):
+    return (c >= '0' and c <= '9') or (c >= 'a' and c <= 'f') or (c >= 'A' and c >= 'F')
+
+def isOctalDigit(c):
+    return (c >= '0' and c <= '7')
+
 def misra_3_1(rawTokens):
     for token in rawTokens:
         if token.str.startswith('/*') or token.str.startswith('//'):
             if '//' in token.str[2:] or '/*' in token.str[2:]:
                 reportError(token, 3, 1)
+
+def misra_4_1(rawTokens):
+    for token in rawTokens:
+        if token.str[0] != '"':
+            continue
+        pos = 1
+        while pos < len(token.str) - 2:
+            pos1 = pos
+            pos = pos + 1
+            if token.str[pos1] != '\\':
+                continue
+            if token.str[pos1+1] == '\\':
+                pos = pos1 + 2
+                continue
+            if token.str[pos1+1] == 'x':
+                if not isHexDigit(token.str[pos1+2]):
+                    reportError(token, 4, 1)
+                    continue
+                if not isHexDigit(token.str[pos1+3]):
+                    reportError(token, 4, 1)
+                    continue
+            elif isOctalDigit(token.str[pos1+1]):
+                if not isOctalDigit(token.str[pos1+2]):
+                    reportError(token, 4, 1)
+                    continue
+                if not isOctalDigit(token.str[pos1+2]):
+                    reportError(token, 4, 1)
+                    continue
+            else:
+                continue
+
+            c = token.str[pos1 + 4]
+            if c != '"' and c != '\\':
+                reportError(token, 4, 1)
 
 
 def misra_5_1(data):
@@ -543,15 +599,41 @@ def misra_11_7(data):
 
 
 def misra_11_8(data):
+    # TODO: reuse code in CERT-EXP05
     for token in data.tokenlist:
-        if not isCast(token):
-            continue
-        if not token.valueType or not token.astOperand1.valueType:
-            continue
-        if token.valueType.pointer == 0 or token.valueType.pointer == 0:
-            continue
-        if token.valueType.constness == 0 and token.astOperand1.valueType.constness > 0:
-            reportError(token, 11, 8)
+        if isCast(token):
+            # C-style cast
+            if not token.valueType:
+                continue
+            if not token.astOperand1.valueType:
+                continue
+            if token.valueType.pointer == 0:
+                continue
+            if token.astOperand1.valueType.pointer == 0:
+                continue
+            const1 = token.valueType.constness
+            const2 = token.astOperand1.valueType.constness
+            if (const1 % 2) < (const2 % 2):
+                reportError(token, 11, 8)
+
+        elif token.str == '(' and token.astOperand1 and token.astOperand2 and token.astOperand1.function:
+            # Function call
+            function = token.astOperand1.function
+            arguments = getArguments(token)
+            for argnr, argvar in function.argument.items():
+                if argnr < 1 or argnr > len(arguments):
+                    continue
+                if not argvar.isPointer:
+                    continue
+                argtok = arguments[argnr - 1]
+                if not argtok.valueType:
+                    continue
+                if argtok.valueType.pointer == 0:
+                    continue
+                const1 = argvar.isConst
+                const2 = arguments[argnr - 1].valueType.constness
+                if (const1 % 2) < (const2 % 2):
+                    reportError(token, 11, 8)
 
 
 def misra_11_9(data):
@@ -1137,6 +1219,58 @@ OPTIONS:
 """)
     sys.exit(1)
 
+def generateTable():
+    numberOfRules = {}
+    numberOfRules[1] = 3
+    numberOfRules[2] = 7
+    numberOfRules[3] = 2
+    numberOfRules[4] = 2
+    numberOfRules[5] = 9
+    numberOfRules[6] = 2
+    numberOfRules[7] = 4
+    numberOfRules[8] = 14
+    numberOfRules[9] = 5
+    numberOfRules[10] = 8
+    numberOfRules[11] = 9
+    numberOfRules[12] = 4
+    numberOfRules[13] = 6
+    numberOfRules[14] = 4
+    numberOfRules[15] = 7
+    numberOfRules[16] = 7
+    numberOfRules[17] = 8
+    numberOfRules[18] = 8
+    numberOfRules[19] = 2
+    numberOfRules[20] = 14
+    numberOfRules[21] = 12
+    numberOfRules[22] = 6
+
+    # what rules are handled by this addon?
+    addon = []
+    for line in open('misra.py'):
+        res = re.match(r'[ ]+misra_([0-9]+)_([0-9]+)[(].*', line)
+        if res is None:
+            continue
+        addon.append(res.group(1) + '.' + res.group(2))
+
+    # rules handled by cppcheck
+    cppcheck = ['1.3', '2.1', '2.2', '2.4', '2.6', '8.3', '12.2', '13.2', '13.6', '17.5', '18.1', '18.6', '22.1', '22.2', '22.4', '22.6']
+
+    # rules that can be checked with compilers
+    compiler = ['1.1', '1.2']
+
+    # print table
+    for i1 in range(1,23):
+        for i2 in range(1,numberOfRules[i1]+1):
+            num = str(i1) + '.' + str(i2)
+            s = ''
+            if num in addon:
+                s = 'X (Addon)'
+            elif num in cppcheck:
+                s = 'X (Cppcheck)'
+            num = num + '       '
+            print(num[:8] + s)
+    sys.exit(1)
+
 for arg in sys.argv[1:]:
     if arg == '-verify':
         VERIFY = True
@@ -1148,6 +1282,8 @@ for arg in sys.argv[1:]:
         loadRuleTexts(filename)
     elif ".dump" in arg:
         continue
+    elif arg == "-generate-table":
+        generateTable()
     else:
         print('Fatal error: unhandled argument ' + arg)
         sys.exit(1)
@@ -1185,10 +1321,13 @@ for arg in sys.argv[1:]:
 
         if cfgNumber == 1:
             misra_3_1(data.rawTokens)
+            misra_4_1(data.rawTokens)
         misra_5_1(cfg)
         misra_5_3(cfg)
         misra_5_4(cfg)
         misra_5_5(cfg)
+        # 6.1 require updates in Cppcheck (type info for bitfields are lost)
+        # 6.2 require updates in Cppcheck (type info for bitfields are lost)
         if cfgNumber == 1:
             misra_7_1(data.rawTokens)
             misra_7_3(data.rawTokens)

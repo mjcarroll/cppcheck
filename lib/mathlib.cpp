@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -346,9 +346,9 @@ MathLib::biguint MathLib::toULongNumber(const std::string & str)
 
 static unsigned int encodeMultiChar(const std::string& str)
 {
-    unsigned int retval(str.front());
-    for (std::string::const_iterator it=str.begin()+1; it!=str.end(); ++it) {
-        retval = retval<<8 | *it;
+    unsigned int retval = 0;
+    for (std::string::const_iterator it=str.begin(); it!=str.end(); ++it) {
+        retval = (retval << 8) | *it;
     }
     return retval;
 }

@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "path.h"
 #include "pathmatch.h"
+#include "utils.h"
 
 #include <cstddef>
 #include <cstring>
@@ -228,7 +229,7 @@ void FileLister::addFiles(std::map<std::string, std::size_t> &files, const std::
 {
     if (!path.empty()) {
         std::string corrected_path = path;
-        if (corrected_path.back() == '/')
+        if (endsWith(corrected_path, '/'))
             corrected_path.erase(corrected_path.end() - 1);
 
         addFiles2(files, corrected_path, extra, recursive, ignored);

@@ -270,6 +270,7 @@ private:
         TEST_CASE(symboldatabase56); // #7909
         TEST_CASE(symboldatabase57);
         TEST_CASE(symboldatabase58); // #6985 (using namespace type lookup)
+        TEST_CASE(symboldatabase59);
 
         TEST_CASE(enum1);
         TEST_CASE(enum2);
@@ -2879,6 +2880,13 @@ private:
         }
     }
 
+    void symboldatabase59() { // #8465
+        GET_SYMBOL_DB("struct A::B ab[10];\n"
+                      "void f() {}");
+        ASSERT(db != nullptr);
+        ASSERT(db && db->scopeList.size() == 2);
+    }
+
     void enum1() {
         GET_SYMBOL_DB("enum BOOL { FALSE, TRUE }; enum BOOL b;");
 
@@ -5430,7 +5438,7 @@ private:
                       "vector<uninitialized_uint64> m_bits;");
         settings1.standards.cpp = original_std;
 
-        ASSERT(db);
+        ASSERT(db != nullptr);
         ASSERT_EQUALS("", errout.str());
     }
 };

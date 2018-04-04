@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ private:
 
 inline bool endsWith(const std::string &str, char c)
 {
-    return str.back() == c;
+    return str[str.size()-1U] == c;
 }
 
 inline bool endsWith(const std::string &str, const char end[], std::size_t endlen)

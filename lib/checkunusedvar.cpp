@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -835,7 +835,7 @@ void CheckUnusedVar::checkFunctionVariableUsage_iterateScopes(const Scope* const
         }
 
         // templates
-        if (tok->isName() && tok->str().back() == '>') {
+        if (tok->isName() && endsWith(tok->str(), '>')) {
             // TODO: This is a quick fix to handle when constants are used
             // as template parameters. Try to handle this better, perhaps
             // only remove constants.

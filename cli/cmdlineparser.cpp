@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ static void AddInclPathsToList(const std::string& FileList, std::list<std::strin
                 PathName = Path::fromNativeSeparators(PathName);
 
                 // If path doesn't end with / or \, add it
-                if (PathName.back() != '/')
+                if (!endsWith(PathName, '/'))
                     PathName += '/';
 
                 PathNames->push_back(PathName);
@@ -435,7 +435,7 @@ bool CmdLineParser::ParseFromArgs(int argc, const char* const argv[])
                 path = Path::fromNativeSeparators(path);
 
                 // If path doesn't end with / or \, add it
-                if (path.back() != '/')
+                if (!endsWith(path,'/'))
                     path += '/';
 
                 _settings->includePaths.push_back(path);
@@ -489,7 +489,7 @@ bool CmdLineParser::ParseFromArgs(int argc, const char* const argv[])
 
                     if (FileLister::isDirectory(path)) {
                         // If directory name doesn't end with / or \, add it
-                        if (path.back() != '/')
+                        if (!endsWith(path, '/'))
                             path += '/';
                     }
                     _ignoredPaths.push_back(path);

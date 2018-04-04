@@ -1,6 +1,6 @@
 /*
  * Cppcheck - A tool for static C/C++ code analysis
- * Copyright (C) 2007-2017 Cppcheck team.
+ * Copyright (C) 2007-2018 Cppcheck team.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -589,9 +589,8 @@ std::string ErrorLogger::ErrorMessage::FileLocation::stringify() const
 std::string ErrorLogger::toxml(const std::string &str)
 {
     std::ostringstream xml;
-    const bool isstring(str[0] == '\"');
     for (std::size_t i = 0U; i < str.length(); i++) {
-        char c = str[i];
+        unsigned char c = str[i];
         switch (c) {
         case '<':
             xml << "&lt;";
@@ -609,7 +608,7 @@ std::string ErrorLogger::toxml(const std::string &str)
             xml << "\\0";
             break;
         default:
-            if (!isstring || (c >= ' ' && c <= 'z'))
+            if (c >= ' ' && c <= 0x7f)
                 xml << c;
             else
                 xml << 'x';

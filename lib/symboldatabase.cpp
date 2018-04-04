@@ -93,12 +93,15 @@ void SymbolDatabase::createSymbolDatabaseFindAllScopes()
             else if (_tokenizer->isCPP() && tok->strAt(1) == "class")
                 tok2 = tok2->next();
 
-            while (tok2 && tok2->str() == "::")
+            while (Token::Match(tok2, ":: %name%"))
                 tok2 = tok2->tokAt(2);
 
             // skip over template args
             if (tok2 && tok2->str() == "<" && tok2->link())
                 tok2 = tok2->link()->next();
+
+            if (Token::Match(tok2, "%name% ["))
+                continue;
 
             // make sure we have valid code
             if (!Token::Match(tok2, "{|:")) {
@@ -115,8 +118,10 @@ void SymbolDatabase::createSymbolDatabaseFindAllScopes()
                     // skip variable declaration
                     else if (Token::Match(tok2, "*|&|>"))
                         continue;
+                    else if (Token::Match(tok2, "%name% (") && _tokenizer->isFunctionHead(tok2->next(), "{;"))
+                        continue;
                     else
-                        break; // bail
+                        throw InternalError(tok2, "SymbolDatabase bailout; unhandled code", InternalError::SYNTAX);
                     continue;
                 }
                 break; // bail
@@ -846,42 +851,43 @@ void SymbolDatabase::createSymbolDatabaseFindAllScopes()
 
 void SymbolDatabase::createSymbolDatabaseClassInfo()
 {
-    if (!_tokenizer->isC()) {
-        // fill in using info
-        for (std::list<Scope>::iterator it = scopeList.begin(); it != scopeList.end(); ++it) {
-            for (std::list<Scope::UsingInfo>::iterator i = it->usingList.begin(); i != it->usingList.end(); ++i) {
-                // only find if not already found
-                if (i->scope == nullptr) {
-                    // check scope for match
-                    Scope *scope = findScope(i->start->tokAt(2), &(*it));
-                    if (scope) {
-                        // set found scope
-                        i->scope = scope;
-                        break;
-                    }
+    if (_tokenizer->isC())
+        return;
+
+    // fill in using info
+    for (std::list<Scope>::iterator it = scopeList.begin(); it != scopeList.end(); ++it) {
+        for (std::list<Scope::UsingInfo>::iterator i = it->usingList.begin(); i != it->usingList.end(); ++i) {
+            // only find if not already found
+            if (i->scope == nullptr) {
+                // check scope for match
+                Scope *scope = findScope(i->start->tokAt(2), &(*it));
+                if (scope) {
+                    // set found scope
+                    i->scope = scope;
+                    break;
                 }
             }
         }
+    }
 
-        // fill in base class info
-        for (std::list<Type>::iterator it = typeList.begin(); it != typeList.end(); ++it) {
-            // finish filling in base class info
-            for (unsigned int i = 0; i < it->derivedFrom.size(); ++i) {
-                const Type* found = findType(it->derivedFrom[i].nameTok, it->enclosingScope);
-                if (found && found->findDependency(&(*it))) {
-                    // circular dependency
-                    //_tokenizer->syntaxError(nullptr);
-                } else {
-                    it->derivedFrom[i].type = found;
-                }
+    // fill in base class info
+    for (std::list<Type>::iterator it = typeList.begin(); it != typeList.end(); ++it) {
+        // finish filling in base class info
+        for (unsigned int i = 0; i < it->derivedFrom.size(); ++i) {
+            const Type* found = findType(it->derivedFrom[i].nameTok, it->enclosingScope);
+            if (found && found->findDependency(&(*it))) {
+                // circular dependency
+                //_tokenizer->syntaxError(nullptr);
+            } else {
+                it->derivedFrom[i].type = found;
             }
         }
+    }
 
-        // fill in friend info
-        for (std::list<Type>::iterator it = typeList.begin(); it != typeList.end(); ++it) {
-            for (std::list<Type::FriendInfo>::iterator i = it->friendList.begin(); i != it->friendList.end(); ++i) {
-                i->type = findType(i->nameStart, it->enclosingScope);
-            }
+    // fill in friend info
+    for (std::list<Type>::iterator it = typeList.begin(); it != typeList.end(); ++it) {
+        for (std::list<Type::FriendInfo>::iterator i = it->friendList.begin(); i != it->friendList.end(); ++i) {
+            i->type = findType(i->nameStart, it->enclosingScope);
         }
     }
 }
@@ -1205,7 +1211,7 @@ void SymbolDatabase::createSymbolDatabaseSetFunctionPointers(bool firstPass)
     for (std::list<Scope>::iterator it = scopeList.begin(); it != scopeList.end(); ++it) {
         for (std::list<Function>::const_iterator func = it->functionList.begin(); func != it->functionList.end(); ++func) {
             // look for initializer list
-            if (func->type == Function::eConstructor && func->functionScope && func->functionScope->functionOf && func->arg) {
+            if (func->isConstructor() && func->functionScope && func->functionScope->functionOf && func->arg) {
                 const Token * tok = func->arg->link()->next();
                 if (tok->str() == "noexcept") {
                     const Token * closingParenTok = tok->linkAt(1);
@@ -5025,7 +5031,7 @@ static const Token * parsedecl(const Token *type, ValueType * const valuetype, V
             valuetype->type = ValueType::Type::INT;
     } else
         valuetype->type = ValueType::Type::RECORD;
-    while (Token::Match(type, "%name%|*|&|::") && !type->variable()) {
+    while (Token::Match(type, "%name%|*|&|::") && !type->variable() && !type->function()) {
         if (type->isSigned())
             valuetype->sign = ValueType::Sign::SIGNED;
         else if (type->isUnsigned())
@@ -5137,7 +5143,7 @@ void SymbolDatabase::setValueTypeInTokenList()
         if (tok->isNumber()) {
             if (MathLib::isFloat(tok->str())) {
                 ValueType::Type type = ValueType::Type::DOUBLE;
-                const char suffix = tok->str().back();
+                const char suffix = tok->str()[tok->str().size() - 1];
                 if (suffix == 'f' || suffix == 'F')
                     type = ValueType::Type::FLOAT;
                 else if (suffix == 'L' || suffix == 'l')
