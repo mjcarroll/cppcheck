@@ -1123,9 +1123,11 @@ void CheckBufferOverrun::negativeArraySize()
 
 void CheckBufferOverrun::negativeArraySizeError(const Token *tok)
 {
+	const std::string arrayName = tok ? tok->expressionString() : std::string();
+	const std::string line1 = arrayName.empty() ? std::string() : ("$symbol:" + arrayName + '\n');
     reportError(tok, Severity::error, "negativeArraySize",
-                "$symbol:" + (tok ? tok->str() : std::string()) + '\n'
-                "Declaration of array '$symbol' with negative size is undefined behaviour", CWE758, false);
+                line1 +
+                "Declaration of array '" + arrayName + "' with negative size is undefined behaviour", CWE758, false);
 }
 
 //---------------------------------------------------------------------------
