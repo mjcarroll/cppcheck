@@ -56,6 +56,8 @@ private:
         TEST_CASE(symbol);
 
         TEST_CASE(unusedFunction);
+
+        TEST_CASE(matchglob);
     }
 
     void suppressionsBadId1() const {
@@ -385,7 +387,7 @@ private:
     }
 
     void suppressionsPathSeparator() const {
-        const Suppressions::Suppression s1("*", "test/*");
+        const Suppressions::Suppression s1("*", "test/foo/*");
         ASSERT_EQUALS(true, s1.isSuppressed(errorMessage("someid", "test/foo/bar.cpp", 142)));
 
         const Suppressions::Suppression s2("abc", "include/1.h");
@@ -480,6 +482,21 @@ private:
 
     void unusedFunction() {
         ASSERT_EQUALS(0, checkSuppression("void f() {}", "unusedFunction"));
+    }
+
+    void matchglob() {
+        ASSERT_EQUALS(true, Suppressions::matchglob("*", "xyz"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("x*", "xyz"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("*z", "xyz"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("*y*", "xyz"));
+        ASSERT_EQUALS(false, Suppressions::matchglob("*", "x/y/z"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("*/y/z", "x/y/z"));
+
+        ASSERT_EQUALS(false, Suppressions::matchglob("?", "xyz"));
+        ASSERT_EQUALS(false, Suppressions::matchglob("x?", "xyz"));
+        ASSERT_EQUALS(false, Suppressions::matchglob("?z", "xyz"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("?y?", "xyz"));
+        ASSERT_EQUALS(true, Suppressions::matchglob("?/?/?", "x/y/z"));
     }
 };
 

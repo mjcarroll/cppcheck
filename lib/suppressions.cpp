@@ -164,70 +164,6 @@ std::string Suppressions::addSuppression(const Suppressions::Suppression &suppre
     return "";
 }
 
-static bool matchglob(const std::string &pattern, const std::string &name)
-{
-    const char *p = pattern.c_str();
-    const char *n = name.c_str();
-    std::stack<std::pair<const char *, const char *> > backtrack;
-
-    for (;;) {
-        bool matching = true;
-        while (*p != '\0' && matching) {
-            switch (*p) {
-            case '*':
-                // Step forward until we match the next character after *
-                while (*n != '\0' && *n != p[1]) {
-                    n++;
-                }
-                if (*n != '\0') {
-                    // If this isn't the last possibility, save it for later
-                    backtrack.push(std::make_pair(p, n));
-                }
-                break;
-            case '?':
-                // Any character matches unless we're at the end of the name
-                if (*n != '\0') {
-                    n++;
-                } else {
-                    matching = false;
-                }
-                break;
-            default:
-                // Non-wildcard characters match literally
-                if (*n == *p) {
-                    n++;
-                } else if (*n == '\\' && *p == '/') {
-                    n++;
-                } else if (*n == '/' && *p == '\\') {
-                    n++;
-                } else {
-                    matching = false;
-                }
-                break;
-            }
-            p++;
-        }
-
-        // If we haven't failed matching and we've reached the end of the name, then success
-        if (matching && *n == '\0') {
-            return true;
-        }
-
-        // If there are no other paths to try, then fail
-        if (backtrack.empty()) {
-            return false;
-        }
-
-        // Restore pointers from backtrack stack
-        p = backtrack.top().first;
-        n = backtrack.top().second;
-        backtrack.pop();
-
-        // Advance name pointer by one because the current position didn't work
-        n++;
-    }
-}
-
 bool Suppressions::Suppression::isSuppressed(const Suppressions::ErrorMessage &errmsg) const
 {
     if (!errorId.empty() && !matchglob(errorId, errmsg.errorId))
@@ -303,4 +239,68 @@ std::list<Suppressions::Suppression> Suppressions::getUnmatchedGlobalSuppression
         result.push_back(s);
     }
     return result;
+}
+
+bool Suppressions::matchglob(const std::string &pattern, const std::string &name)
+{
+    const char *p = pattern.c_str();
+    const char *n = name.c_str();
+    std::stack<std::pair<const char *, const char *> > backtrack;
+
+    for (;;) {
+        bool matching = true;
+        while (*p != '\0' && matching) {
+            switch (*p) {
+            case '*':
+                // Step forward until we match the next character after *
+                while (*n != '\0' && *n != p[1] && *n != '\\' && *n != '/') {
+                    n++;
+                }
+                if (*n != '\0' && *n != '/') {
+                    // If this isn't the last possibility, save it for later
+                    backtrack.push(std::make_pair(p, n));
+                }
+                break;
+            case '?':
+                // Any character matches unless we're at the end of the name
+                if (*n != '\0' && *n != '\\' && *n != '/') {
+                    n++;
+                } else {
+                    matching = false;
+                }
+                break;
+            default:
+                // Non-wildcard characters match literally
+                if (*n == *p) {
+                    n++;
+                } else if (*n == '\\' && *p == '/') {
+                    n++;
+                } else if (*n == '/' && *p == '\\') {
+                    n++;
+                } else {
+                    matching = false;
+                }
+                break;
+            }
+            p++;
+        }
+
+        // If we haven't failed matching and we've reached the end of the name, then success
+        if (matching && *n == '\0') {
+            return true;
+        }
+
+        // If there are no other paths to try, then fail
+        if (backtrack.empty()) {
+            return false;
+        }
+
+        // Restore pointers from backtrack stack
+        p = backtrack.top().first;
+        n = backtrack.top().second;
+        backtrack.pop();
+
+        // Advance name pointer by one because the current position didn't work
+        n++;
+    }
 }
