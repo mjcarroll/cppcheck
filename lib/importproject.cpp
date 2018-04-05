@@ -71,8 +71,8 @@ void ImportProject::ignoreOtherPlatforms(cppcheck::Platform::PlatformType platfo
 void ImportProject::FileSettings::setDefines(std::string defs)
 {
     while (defs.find(";%(") != std::string::npos) {
-        std::string::size_type pos1 = defs.find(";%(");
-        std::string::size_type pos2 = defs.find(';', pos1+1);
+        const std::string::size_type pos1 = defs.find(";%(");
+        const std::string::size_type pos2 = defs.find(';', pos1+1);
         defs.erase(pos1, pos2 == std::string::npos ? pos2 : (pos2-pos1));
     }
     while (defs.find(";;") != std::string::npos)
@@ -102,7 +102,7 @@ static bool simplifyPathWithVariables(std::string &s, std::map<std::string, std:
     std::set<std::string, cppcheck::stricmp> expanded;
     std::string::size_type start = 0;
     while ((start = s.find("$(")) != std::string::npos) {
-        std::string::size_type end = s.find(')',start);
+        const std::string::size_type end = s.find(')',start);
         if (end == std::string::npos)
             break;
         const std::string var = s.substr(start+2,end-start-2);
@@ -199,6 +199,17 @@ void ImportProject::importCompileCommands(std::istream &istr)
             values[key.substr(1, key.size() - 2U)] = value.substr(1, value.size() - 2U);
         }
 
+        else if (Token::Match(tok, "%str% : [ %str%") && tok->str() == "\"arguments\"") {
+            std::string cmd;
+            tok = tok->tokAt(2);
+            while (Token::Match(tok, ",|[ %str%")) {
+                const std::string &s = tok->next()->str();
+                cmd += ' ' + s.substr(1, s.size() - 2);
+                tok = tok->tokAt(2);
+            }
+            values["command"] = cmd.substr(1);
+        }
+
         else if (tok->str() == "}") {
             if (!values["file"].empty() && !values["command"].empty()) {
                 struct FileSettings fs;
@@ -215,7 +226,11 @@ void ImportProject::importCompileCommands(std::istream &istr)
                     pos++;
                     if (pos >= command.size())
                         break;
-                    char F = command[pos++];
+                    const char F = command[pos++];
+                    if (std::strchr("DUI", F)) {
+                        while (pos < command.size() && command[pos] == ' ')
+                            ++pos;
+                    }
                     std::string fval;
                     while (pos < command.size() && command[pos] != ' ' && command[pos] != '=') {
                         if (command[pos] != '\\')
@@ -421,7 +436,7 @@ static void importPropertyGroup(const tinyxml2::XMLElement *node, std::map<std::
             if (!text)
                 continue;
             std::string path(text);
-            std::string::size_type pos = path.find("$(IncludePath)");
+            const std::string::size_type pos = path.find("$(IncludePath)");
             if (pos != std::string::npos)
                 path = path.substr(0,pos) + *includePath + path.substr(pos+14U);
             *includePath = path;
@@ -483,7 +498,7 @@ void ImportProject::importVcxproj(const std::string &filename, std::map<std::str
     bool useOfMfc = false;
 
     tinyxml2::XMLDocument doc;
-    tinyxml2::XMLError error = doc.LoadFile(filename.c_str());
+    const tinyxml2::XMLError error = doc.LoadFile(filename.c_str());
     if (error != tinyxml2::XML_SUCCESS)
         return;
     const tinyxml2::XMLElement * const rootnode = doc.FirstChildElement();
@@ -495,7 +510,7 @@ void ImportProject::importVcxproj(const std::string &filename, std::map<std::str
             if (labelAttribute && std::strcmp(labelAttribute, "ProjectConfigurations") == 0) {
                 for (const tinyxml2::XMLElement *cfg = node->FirstChildElement(); cfg; cfg = cfg->NextSiblingElement()) {
                     if (std::strcmp(cfg->Name(), "ProjectConfiguration") == 0) {
-                        ProjectConfiguration p(cfg);
+                        const ProjectConfiguration p(cfg);
                         if (p.platform != ProjectConfiguration::Unknown)
                             projectConfigurationList.push_back(ProjectConfiguration(cfg));
                     }

@@ -193,7 +193,7 @@ bool CheckCondition::assignIfParseScope(const Token * const assignTok,
                 }
             }
 
-            bool ret1 = assignIfParseScope(assignTok, end->tokAt(2), varid, islocal, bitop, num);
+            const bool ret1 = assignIfParseScope(assignTok, end->tokAt(2), varid, islocal, bitop, num);
             bool ret2 = false;
             if (Token::simpleMatch(end->next()->link(), "} else {"))
                 ret2 = assignIfParseScope(assignTok, end->next()->link()->tokAt(3), varid, islocal, bitop, num);
@@ -1335,12 +1335,11 @@ void CheckCondition::checkInvalidTestForOverflow()
 
 void CheckCondition::invalidTestForOverflow(const Token* tok, bool result)
 {
-    std::string errmsg;
-    errmsg = "Invalid test for overflow '" +
-             (tok ? tok->expressionString() : std::string("x + u < x")) +
-             "'. Condition is always " +
-             std::string(result ? "true" : "false") +
-             " unless there is overflow, and overflow is undefined behaviour.";
+    const std::string errmsg = "Invalid test for overflow '" +
+                               (tok ? tok->expressionString() : std::string("x + u < x")) +
+                               "'. Condition is always " +
+                               std::string(result ? "true" : "false") +
+                               " unless there is overflow, and overflow is undefined behaviour.";
     reportError(tok, Severity::warning, "invalidTestForOverflow", errmsg, (result ? CWE571 : CWE570), false);
 }
 
